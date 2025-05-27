@@ -4,24 +4,14 @@ public class PMovement : MonoBehaviour
 {
     
     float pHorizontal;
-    public bool groundCheck;
-    bool isFacingRight = true;
     public float groundCheckRadius = .35f;
-    float jumpTimeCounter = 1;
-    public int jumpCount;
-    bool canDoubleJump;
-    bool jumpStarts;
-    bool isCrouched;
-
     float coyoteTime = 0.2f;
     float coyoteTimeCounter;
-
-    bool jumpBuffer;
-    float jumpBufferAngle = 1f;
-    public GameObject jumpBufferPos;
-
-    public bool bouncing;
-    public float bounceCounter;
+    
+    public bool isGrounded;
+    bool isFacingRight = true;
+    bool isCrouched;
+    bool isJumped;
 
     public GameObject groundCheckPosition;
     public GameObject respawnPoint;
@@ -49,7 +39,6 @@ public class PMovement : MonoBehaviour
         Jump();
         Crouch();
         Flip();
-        WallBounce();
         AnimationParameters();
         TestDieVoid();
 
@@ -62,22 +51,9 @@ public class PMovement : MonoBehaviour
 
     void Movement()
     {
-        if(bouncing == false)
-        {
-            rb.velocity = new Vector2(pHorizontal * speed * Time.deltaTime, rb.velocity.y);
-        }
-        else
-        {
-            bounceCounter -= Time.deltaTime;
-            if(bounceCounter < 0)
-            {
-                bouncing = false;
-            }
-        }
-
-        
-        
+        rb.velocity = new Vector2(pHorizontal * speed * Time.deltaTime, rb.velocity.y);
     }
+
     void Flip()
     {
         if(isFacingRight && pHorizontal < 0f || !isFacingRight && pHorizontal > 0f)
@@ -88,146 +64,51 @@ public class PMovement : MonoBehaviour
             transform.localScale = localScale;
         }
     }
+
     void CheckSurfaceForMovement()
     {
-        groundCheck = Physics2D.OverlapCircle(groundCheckPosition.transform.position, groundCheckRadius, groundCheckLayer);
-        jumpBuffer = Physics2D.OverlapCapsule(jumpBufferPos.transform.position, new Vector2(0.5f ,1), CapsuleDirection2D.Vertical, jumpBufferAngle, groundCheckLayer);
+        isGrounded = Physics2D.OverlapCircle(groundCheckPosition.transform.position, groundCheckRadius, groundCheckLayer);
     }
+
     void Jump()
     {
         if(attackScript.isSmashing == false && isCrouched == false)
         {
-            if(Input.GetKeyDown(KeyCode.Space) && coyoteTimeCounter > 0f)
+            if(Input.GetKeyDown(KeyCode.Space) && !isJumped)
             {
-                jumpStarts = true;
-                jumpTimeCounter = 0.2625f;
-                jumpCount = 1;
-                //rb.velocity = new Vector2(rb.velocity.x, 10f);
-            }
-            else if(jumpStarts == true && Input.GetKey(KeyCode.Space))
-            {
-                if(jumpTimeCounter > 0)
-                {
-                    rb.velocity = new Vector2(rb.velocity.x, 6f);
-                    jumpTimeCounter -= Time.deltaTime;
-                }
-                else if(jumpTimeCounter < 0)
-                {
-                    jumpStarts = false;
-                }
-            }
-
-            
-            if(Input.GetKeyDown(KeyCode.Space) && !Input.GetKey(KeyCode.S) && coyoteTimeCounter <= 0 && jumpCount == 1)
-            {
-                jumpStarts = true;
-                jumpTimeCounter = 0.2625f;
-                canDoubleJump = true;
-                animator.SetTrigger("JumpTrigger");
-                jumpCount = 0;
-                //rb.velocity = new Vector2(rb.velocity.x, 10f);
-            }
-            else if(Input.GetKey(KeyCode.Space) && canDoubleJump && jumpStarts == true)
-            {
-                if(jumpTimeCounter > 0)
-                {
-                    rb.velocity = new Vector2(rb.velocity.x, 6f);
-                    jumpTimeCounter -= Time.deltaTime;
-                }
-                else if(jumpTimeCounter < 0)
-                {
-                    jumpStarts = false;
-                    canDoubleJump = false;
-                }
-            }
-
-            if(Input.GetKeyUp(KeyCode.Space))
-            {
-                jumpStarts = false;
-                jumpTimeCounter = 0;
-                canDoubleJump = false;
+                rb.velocity = new Vector2(rb.velocity.x, 10f);
+                isJumped = true;
                 coyoteTimeCounter = 0;
             }
+
+            if(isGrounded)
+            {
+                isJumped = false;
+            }
+            else
+            {
+                isJumped = true;
+            }
+            
         }
+    }
 
-        #region Fly Codes (i did it by accident)
-        // if (groundCheck == true && attackScript.isSmashing == false && isCrouched == false)
-        // {
-        //     if(Input.GetKeyDown(KeyCode.Space))
-        //     {
-        //         jumpStarts = true;
-        //         reachedMaxHigh = false;
-        //         doubleJumped = false;
-                
-        //     }
-
-        // }
-        // else if(groundCheck == false && attackScript.isSmashing == false && isCrouched == false && doubleJumped == false)
-        // {
-        //     if(Input.GetKeyDown(KeyCode.Space))
-        //     {
-        //         jumpStarts = true;
-        //         reachedMaxHigh = false;
-        //         doubleJumped = true;
-        //         animator.SetTrigger("JumpTrigger");
-        //     }
-            
-        // }
-        
-        // if(Input.GetKey(KeyCode.Space) && reachedMaxHigh == false && jumpStarts)
-        // {
-        //     jumpStage += Time.deltaTime;
-        //     if(jumpStage < 1)
-        //     {
-        //         rb.velocity += new Vector2(0, 50f * Time.deltaTime);
-        //     }
-        //     else
-        //     {
-        //         rb.velocity += new Vector2(0, 200f * Time.deltaTime);
-        //     }
-
-        //     if(rb.velocity.y > 20)
-        //     {
-        //         reachedMaxHigh = true;
-        //     }
-        // }
-
-        // if(Input.GetKeyUp(KeyCode.Space))
-        // {
-        //     jumpStarts = false;
-        // }
-        #endregion
-            
-
-        #region Old Jump Codes
-        // if (groundCheck == true && attackScript.isSmashing == false && isCrouched == false)
-        // {
-        //     if (Input.GetKeyDown(KeyCode.Space))
-        //     {
-        //         rb.velocity = new Vector2(rb.velocity.x, jumpPover);
-        //         doubleJumped = false;
-        //         animator.SetTrigger("JumpTrigger");
-        //     }
-
-        // }
-        // else if(groundCheck == false && doubleJumped == false && !Input.GetKey(KeyCode.S) && attackScript.isSmashing == false)
-        // {
-        //     if (Input.GetKeyDown(KeyCode.Space))
-        //     {
-        //         rb.velocity = new Vector2(rb.velocity.x, jumpPover);
-        //         doubleJumped = true;
-        //         animator.SetTrigger("JumpTrigger");
-        //         Debug.Log("Double Jumped");
-        //     }
-        // }
-        #endregion
-
+    void Coyote()
+    {
+        if(isGrounded && !isJumped)
+        {
+            coyoteTimeCounter = coyoteTime;
+        }
+        else
+        {
+            coyoteTimeCounter -= Time.deltaTime;
+        }
 
     }
 
     void Crouch()
     {
-        if(groundCheck)
+        if(isGrounded)
         {
             if(Input.GetKeyDown(KeyCode.S) && attackScript.isSmashing == false)
             {
@@ -250,7 +131,7 @@ public class PMovement : MonoBehaviour
             }
             
         }
-        else if(groundCheck == false && isCrouched)
+        else if(isGrounded == false && isCrouched)
         {
             isCrouched = false;
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
@@ -265,11 +146,9 @@ public class PMovement : MonoBehaviour
     {
         animator.SetFloat("Horizontal", Mathf.Abs(pHorizontal));
         animator.SetFloat("VerticalVel", rb.velocity.y);
-        animator.SetBool("isGrounded", groundCheck);
+        animator.SetBool("isGrounded", isGrounded);
         animator.SetBool("isCrouched", isCrouched);
     }
-
-    
 
     void TestDieVoid()
     {
@@ -279,47 +158,10 @@ public class PMovement : MonoBehaviour
         }
     }
 
-    void Coyote()
-    {
-        if(jumpBuffer)
-        {
-            coyoteTimeCounter = coyoteTime;
-        }
-        else
-        {
-            coyoteTimeCounter -= Time.deltaTime;
-        }
+    
 
-    }
-
-    void WallBounce()
-    {
-        if(Input.GetKeyDown(KeyCode.H))
-        {
-            rb.velocity = new Vector2(1f * 10f, 1f * 10f);
-            bounceCounter = 1;
-            bouncing = true;
-        }
-        
-    }
 
     private void OnCollisionEnter2D(Collision2D other) {
-
-        if(other.gameObject.CompareTag("WallRightForce"))
-        {
-            
-            rb.velocity = new Vector2(1f * 20f, 1f * 20f);
-            bounceCounter = 0.5f;
-            bouncing = true;
-        }
-        else if(other.gameObject.CompareTag("WallLeftForce"))
-        {
-            
-            rb.velocity = new Vector2(-1f * 20f, 1f * 20f);
-            bounceCounter = 0.5f;
-            bouncing = true;
-        }
-
         if(other.gameObject.CompareTag("Platform"))
         {
             transform.SetParent(other.transform);

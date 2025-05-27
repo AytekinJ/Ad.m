@@ -28,7 +28,7 @@ public class PAttack : MonoBehaviour
 
     void Attack()
     {
-        if(Input.GetKey(KeyCode.S) && movement.groundCheck == false && attackCoolDown < 0.01)
+        if(Input.GetKey(KeyCode.S) && movement.isGrounded == false && attackCoolDown < 0.01)
         {
             if(Input.GetKeyDown(KeyCode.Space))
             {
@@ -63,7 +63,7 @@ public class PAttack : MonoBehaviour
             }
         }
 
-        if(movement.groundCheck && isSmashing)
+        if(movement.isGrounded && isSmashing)
         {
             smashed = true;
         }
@@ -74,6 +74,7 @@ public class PAttack : MonoBehaviour
 
     void OnDrawGizmos()
     {
+        Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(attackPoint.transform.position, attackRange);
         
     }
@@ -82,7 +83,7 @@ public class PAttack : MonoBehaviour
 
     IEnumerator AttackEnd()
     {
-        if(movement.groundCheck)
+        if(movement.isGrounded)
         {
             yield return new WaitForSeconds(0.45f);
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
