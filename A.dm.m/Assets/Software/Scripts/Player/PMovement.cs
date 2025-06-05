@@ -3,10 +3,11 @@ using UnityEngine;
 public class PMovement : MonoBehaviour
 {
     
-    float pHorizontal;
+    float horizontal;
     public float groundCheckRadius = .35f;
     float coyoteTime = 0.2f;
     float coyoteTimeCounter;
+    float gravity = 10f;
     
     public bool isGrounded;
     bool isFacingRight = true;
@@ -19,11 +20,10 @@ public class PMovement : MonoBehaviour
 
     
 
-    float speed = 300f;
+    float speed = 30f;
     PAttack attackScript;
     Rigidbody2D rb;
     Animator animator;
-
     
 
     private void Awake() {
@@ -41,22 +41,48 @@ public class PMovement : MonoBehaviour
         Flip();
         AnimationParameters();
         TestDieVoid();
+        
+        Physics();
 
-        pHorizontal = Input.GetAxis("Horizontal");
+        horizontal = Input.GetAxisRaw("Horizontal");
+
+        
     }
     private void FixedUpdate() {
         Movement();
     }
     
+    void Physics()
+    {
+        // if(!isGrounded)
+        // {
+        //     cr.velocity -= new Vector3(0, gravity * Time.deltaTime) ;
+        // }
+        // else
+        // {
+        //     velocity.y = 0;
+        // }
 
+        // if(Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0)
+        // {
+        //     transform.position += velocity;
+        // }
+        // else
+        // {
+        //     velocity.x = 0;
+        //     velocity.y = 0;
+        // }
+
+    }
     void Movement()
     {
-        rb.velocity = new Vector2(pHorizontal * speed * Time.deltaTime, rb.velocity.y);
+        // rb.velocity = new Vector2(pHorizontal * speed * Time.deltaTime, rb.velocity.y);
+        rb.velocity = new Vector2(horizontal * speed * 10 * Time.deltaTime, rb.velocity.y);
     }
 
     void Flip()
     {
-        if(isFacingRight && pHorizontal < 0f || !isFacingRight && pHorizontal > 0f)
+        if(isFacingRight && horizontal < 0f || !isFacingRight && horizontal > 0f)
         {
             isFacingRight = !isFacingRight;
             Vector3 localScale = transform.localScale;
@@ -108,43 +134,43 @@ public class PMovement : MonoBehaviour
 
     void Crouch()
     {
-        if(isGrounded)
-        {
-            if(Input.GetKeyDown(KeyCode.S) && attackScript.isSmashing == false)
-            {
-                Debug.Log("Crouched");
-                isCrouched = true;
-                rb.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation;
+        // if(isGrounded)
+        // {
+        //     if(Input.GetKeyDown(KeyCode.S) && attackScript.isSmashing == false)
+        //     {
+        //         Debug.Log("Crouched");
+        //         isCrouched = true;
+        //         rb.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation;
 
-                GetComponent<CapsuleCollider2D>().direction = CapsuleDirection2D.Horizontal;
-                GetComponent<CapsuleCollider2D>().offset = new Vector2(0, 0.4f);
-                GetComponent<CapsuleCollider2D>().size = new Vector2(1.2f, 0.6f);
-            }
-            else if(Input.GetKeyUp(KeyCode.S) && attackScript.isSmashing == false)
-            {
-                Debug.Log("Standing Up");
-                isCrouched = false;
-                rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-                GetComponent<CapsuleCollider2D>().direction = CapsuleDirection2D.Vertical;
-                GetComponent<CapsuleCollider2D>().offset = new Vector2(0, 0.7f);
-                GetComponent<CapsuleCollider2D>().size = new Vector2(0.85f, 1f);
-            }
+        //         GetComponent<CapsuleCollider2D>().direction = CapsuleDirection2D.Horizontal;
+        //         GetComponent<CapsuleCollider2D>().offset = new Vector2(0, 0.4f);
+        //         GetComponent<CapsuleCollider2D>().size = new Vector2(1.2f, 0.6f);
+        //     }
+        //     else if(Input.GetKeyUp(KeyCode.S) && attackScript.isSmashing == false)
+        //     {
+        //         Debug.Log("Standing Up");
+        //         isCrouched = false;
+        //         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        //         GetComponent<CapsuleCollider2D>().direction = CapsuleDirection2D.Vertical;
+        //         GetComponent<CapsuleCollider2D>().offset = new Vector2(0, 0.7f);
+        //         GetComponent<CapsuleCollider2D>().size = new Vector2(0.85f, 1f);
+        //     }
             
-        }
-        else if(isGrounded == false && isCrouched)
-        {
-            isCrouched = false;
-            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-            GetComponent<CapsuleCollider2D>().direction = CapsuleDirection2D.Vertical;
-            GetComponent<CapsuleCollider2D>().offset = new Vector2(0, 0.7f);
-            GetComponent<CapsuleCollider2D>().size = new Vector2(0.85f, 1f);
-        }
+        // }
+        // else if(isGrounded == false && isCrouched)
+        // {
+        //     isCrouched = false;
+        //     rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        //     GetComponent<CapsuleCollider2D>().direction = CapsuleDirection2D.Vertical;
+        //     GetComponent<CapsuleCollider2D>().offset = new Vector2(0, 0.7f);
+        //     GetComponent<CapsuleCollider2D>().size = new Vector2(0.85f, 1f);
+        // }
         
     }
 
     void AnimationParameters()
     {
-        animator.SetFloat("Horizontal", Mathf.Abs(pHorizontal));
+        animator.SetFloat("Horizontal", Mathf.Abs(horizontal));
         animator.SetFloat("VerticalVel", rb.velocity.y);
         animator.SetBool("isGrounded", isGrounded);
         animator.SetBool("isCrouched", isCrouched);
